@@ -2,9 +2,8 @@ package main
 
 import (
 	"bytes"
-	"encoding/json"
+	json "encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -20,26 +19,48 @@ func main() {
 	// 启动 HTTP 服务器并监听指定端口
 	port := 8080
 	fmt.Printf("Server listening on port %d\n", port)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), nil))
+	log.Fatal(http.ListenAndServe(fmt.Sprintf("0.0.0.0:%d", port), nil))
 }
 
 type AskContent struct {
 	AskContent string `json:"ask_content,omitempty"`
 }
 
+type OpenAPIResponse struct {
+	Status int    `json:"status"`
+	Answer string `json:"answer"`
+}
+type OriginalResponse struct {
+	Object  string   `json:"object"`
+	Created int64    `json:"created"`
+	Model   string   `json:"model"`
+	Choices []Choice `json:"choices"`
+}
+
+type Choice struct {
+	Index   int     `json:"index"`
+	Message Message `json:"message"`
+}
+
+type Message struct {
+	Role    string `json:"role"`
+	Content string `json:"content"`
+}
+
 func openAPIChat(w http.ResponseWriter, r *http.Request) {
-	// 对话问题
-	askQuestion := r.FormValue("ask_content")
-
-	data, err := io.ReadAll(r.Body)
+	// 解码请求体
 	var ask AskContent
-	if err = json.Unmarshal(data, &ask); err != nil {
-		log.Println("解析问题失败！")
+	err := json.NewDecoder(r.Body).Decode(&ask)
+	if err != nil {
+		log.Println("解析问题失败:", err)
+		http.Error(w, "解析问题失败", http.StatusBadRequest)
+		return
 	}
-	log.Println(ask)
+	defer r.Body.Close()
 
-	log.Println("请求gpt的问题：", askQuestion)
-	// 其他参数先写死
+	log.Println("请求gpt的问题:", ask.AskContent)
+
+	// 构建请求数据
 	payload := map[string]interface{}{
 		"max_tokens":       1200,
 		"model":            "gpt-3.5-turbo",
@@ -60,41 +81,55 @@ func openAPIChat(w http.ResponseWriter, r *http.Request) {
 
 	jsonPayload, err := json.Marshal(payload)
 	if err != nil {
-		fmt.Println("Error encoding JSON payload:", err)
+		log.Println("Error encoding JSON payload:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonPayload))
 	if err != nil {
-		fmt.Println("Error creating HTTP request:", err)
+		log.Println("Error creating HTTP request:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
 	req.Header.Set("Authorization", "Bearer "+apiKey)
 	req.Header.Set("Content-Type", "application/json")
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	// 发送请求
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		fmt.Println("Error making API request:", err)
+		log.Println("Error making API request:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+	defer resp.Body.Close()
+
+	// 读取响应数据
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Println("Error reading response body:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
-	defer resp.Body.Close()
+	log.Println("请求gpt返回答案:", string(body))
 
-	// 请根据实际需求解析和处理响应数据
-	fmt.Println("Response HTTP Status:", resp.StatusCode)
-
-	// 设置响应的 Content-Type
-	w.Header().Set("Content-Type", "application/json")
-
-	// 编写要返回的 JSON 数据
-	body, err := ioutil.ReadAll(resp.Body)
-	log.Println("请求gpt返回答案：", string(body))
-
-	// 将 JSON 数据写入响应体
-	_, err = w.Write(body)
+	// 解析响应数据
+	var response OpenAPIResponse
+	var oResp OriginalResponse
+	err = json.Unmarshal(body, &oResp)
 	if err != nil {
-		log.Println(err)
+		log.Println("error msg", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
 	}
+
+	response.Status = 0
+	response.Answer = oResp.Choices[0].Message.Content
+
+	// 设置响应头和写入响应体
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
 }
