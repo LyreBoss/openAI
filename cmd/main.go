@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"openAI/http/handler"
 )
 
 var url = "https://api.openai-hk.com/v1/chat/completions"
@@ -15,6 +16,11 @@ var apiKey = "hk-v2th7s10000061096bd1f550d8a1a5a021fa787fe3047643"
 func main() {
 	// 定义 API 处理函数
 	http.HandleFunc("/api/chat/completions/v0", openAPIChat)
+	http.HandleFunc("/api/chat/getMessageList/v0", handler.GetMessageList)
+	http.HandleFunc("/api/chat/GetConversations/v0", handler.GetConversations)
+	http.HandleFunc("/api/chat/GetAgents/v0", handler.GetAgents)
+	http.HandleFunc("/api/chat/FollowAgent/v0", handler.FollowAgent)
+	http.HandleFunc("/api/chat/DeleteConversation/v0", handler.DeleteConversation)
 
 	// 启动 HTTP 服务器并监听指定端口
 	port := 8080
