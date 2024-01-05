@@ -13,4 +13,4 @@ RUN go build -o main .
 EXPOSE 8080
 
 # 设置容器启动时执行的命令
-CMD ["./cmd/main"]
+CMD ["./main"]
