@@ -11,7 +11,7 @@ import (
 var DB *sql.DB
 
 func init() {
-	DB, erro := sql.Open("mysql", "root:root@tcp(127.0.0.1:3306)/openai_schema?charset=utf8&parseTime=True&loc=Local") // 使用本地时间，即东八区，北京时间
+	DB, erro := sql.Open("mysql", "root:root123..A@tcp(149.88.86.80:3306)/openai_schema?charset=utf8&parseTime=True&loc=Local") // 使用本地时间，即东八区，北京时间
 	fmt.Println(erro)
 	fmt.Println(DB.Ping())
 	// set pool params
