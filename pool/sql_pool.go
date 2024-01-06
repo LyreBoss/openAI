@@ -5,24 +5,23 @@ import (
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"log"
-	"time"
 )
 
 var DB *sql.DB
 
 func init() {
-	DB, erro := sql.Open("mysql", "root:root123..A@tcp(149.88.86.80:3306)/openai_schema?charset=utf8&parseTime=True&loc=Local") // 使用本地时间，即东八区，北京时间
-	fmt.Println(erro)
-	fmt.Println(DB.Ping())
-	// set pool params
-	DB.SetMaxOpenConns(2000)
-	DB.SetMaxIdleConns(1000)
-	DB.SetConnMaxLifetime(time.Minute * 60) // mysql default conn timeout=8h, should < mysql_timeout
-	err := DB.Ping()
-	if err != nil {
-		log.Fatalf("database init failed, err: ", err.Error())
-	}
-	log.Println("mysql conn pool has initiated.")
+	//DB, erro := sql.Open("mysql", "root:root123..A@tcp(149.88.86.80:3306)/openai_schema?charset=utf8&parseTime=True&loc=Local") // 使用本地时间，即东八区，北京时间
+	//fmt.Println(erro)
+	//fmt.Println(DB.Ping())
+	//// set pool params
+	//DB.SetMaxOpenConns(2000)
+	//DB.SetMaxIdleConns(1000)
+	//DB.SetConnMaxLifetime(time.Minute * 60) // mysql default conn timeout=8h, should < mysql_timeout
+	//err := DB.Ping()
+	//if err != nil {
+	//	log.Fatalf("database init failed, err: ", err.Error())
+	//}
+	//log.Println("mysql conn pool has initiated.")
 }
 
 func checkErr(err error) {
