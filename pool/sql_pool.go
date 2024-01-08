@@ -11,7 +11,7 @@ import (
 var DB *sql.DB
 
 func init() {
-	var datasourceName = "root:root123..A@tcp(127.0.0.1:3306)/openai_schema?charset=utf8&parseTime=True&loc=Local"
+	var datasourceName = "root:root123..A@tcp(149.88.86.80:3306)/openai_schema?charset=utf8&parseTime=True&loc=Local"
 	DB, err := sql.Open("mysql", datasourceName)
 	fmt.Println(err)
 	fmt.Println(DB.Ping())
