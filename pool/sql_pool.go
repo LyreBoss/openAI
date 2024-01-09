@@ -12,18 +12,15 @@ var DB *sql.DB
 
 func init() {
 	var datasourceName = "root:root123..A@tcp(127.0.0.1:3306)/openai_schema?charset=utf8&parseTime=True&loc=Local"
-	DB, err := sql.Open("mysql", datasourceName)
-	fmt.Println(err)
+	DB, _ = sql.Open("mysql", datasourceName)
 	fmt.Println(DB.Ping())
 	// set pool params
 	DB.SetMaxOpenConns(2000)
 	DB.SetMaxIdleConns(1000)
 	DB.SetConnMaxLifetime(time.Minute * 60) // mysql default conn timeout=8h, should < mysql_timeout
-	err = DB.Ping()
-	fmt.Println(err)
-	if err != nil {
-		log.Fatalf("database init failed, err: ", err.Error())
-	}
+
+	fmt.Println(DB.Ping())
+
 	log.Println("mysql conn pool has initiated.")
 }
 
