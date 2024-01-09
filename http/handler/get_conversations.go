@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"openAI/model"
+	"openAI/pool"
 )
 
 // WxId 请求参数
